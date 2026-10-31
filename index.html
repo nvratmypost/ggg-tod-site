@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>GGG TOD</title>
+<style>
+  :root {
+    --red: #bf1e2d;
+    --gold: #fbb03f;
+    --white: #ffffff;
+    --grey: #414142;
+    --bg: #000000;    --muted: #b9b9ba;
+    --line: #5a5a5c;
+    --font: "Helvetica Neue", Helvetica, Arial, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; background: var(--bg); color: var(--white);
+    font-family: var(--font); font-size: 16px; line-height: 1.4;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+
+  header { display: flex; align-items: center; gap: 16px; padding: 8px 0 16px; }
+  header img { width: 96px; height: 96px; flex: none; }
+  header h1 { margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: .02em; }
+  header .asof { color: var(--muted); font-size: .85rem; margin-top: 2px; }
+  .sample { display: inline-block; background: var(--gold); color: #000; font-weight: 700;
+            font-size: .7rem; padding: 2px 8px; border-radius: 3px; margin-left: 8px; vertical-align: middle; }
+
+  .bar { background: var(--red); color: var(--white); font-weight: 700; font-size: 1.05rem;
+         padding: 8px 12px; border-radius: 6px 6px 0 0; text-align: left; }
+  .bar .sub { display: block; font-weight: 400; font-size: .85rem; margin-top: 1px; }
+  nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  nav a { color: var(--white); text-decoration: none; font-weight: 700; font-size: .9rem;
+          border: 1px solid var(--line); border-radius: 4px; padding: 6px 12px; }
+  nav a:hover, nav a:focus-visible { border-color: var(--gold); color: var(--gold); }
+  html { scroll-behavior: smooth; }
+  section { scroll-margin-top: 12px; }
+  section { margin-bottom: 32px; }
+
+  /* Scorecards */
+  .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .card { background: var(--grey); border-left: 8px solid var(--red); border-radius: 6px;
+          padding: 14px 12px; }
+  .card .num { font-size: 2.2rem; font-weight: 800; color: var(--gold); line-height: 1.1; }
+  .card .lbl { font-size: .85rem; color: var(--white); margin-top: 4px; }
+
+  /* Tables */
+  .tools { display: flex; gap: 8px; padding: 10px 0; }
+  .tools input { flex: 1; max-width: 320px; background: #111; color: var(--white);
+                 border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; font: inherit; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  th, td { padding: 10px 12px; text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-weight: 700; color: var(--white); border-bottom: 1px solid var(--line); }
+  thead tr.grp th { text-align: right; border-bottom: 0; padding-bottom: 2px; }
+  thead tr.grp th.l { border-bottom: 0; }
+  thead tr.grp th.span { border-bottom: 1px solid var(--line); }
+  thead tr.cols th { cursor: pointer; user-select: none; }
+  thead tr.cols th:hover { color: var(--gold); }
+  thead tr.cols th[aria-sort="ascending"]::after { content: " \25B2"; font-size: .7em; color: var(--gold); }
+  thead tr.cols th[aria-sort="descending"]::after { content: " \25BC"; font-size: .7em; color: var(--gold); }
+  tbody tr:nth-child(odd) { background: var(--grey); }
+  tbody td { border-top: 1px solid #000; }
+  td.dash { color: var(--muted); }
+  td:first-child { border-right: 1px solid var(--white); }
+  /* Shrink the first column to fit its content so it doesn't take extra space */
+  th:first-child, td:first-child { width: 1%; }
+  /* TOD Counts name column: longest name + 20px (10px padding each side) */
+  #pivot th:first-child, #pivot td:first-child { padding-left: 10px; padding-right: 10px; }
+  button.name { background: none; border: 0; padding: 0; color: var(--white); font: inherit;
+                cursor: pointer; text-align: left; text-decoration: underline; text-decoration-color: var(--gold);
+                text-underline-offset: 3px; }
+  button.name:hover, button.name:focus-visible { color: var(--gold); }
+  .empty { padding: 16px 12px; color: var(--muted); }
+
+  /* Missing reports: left-aligned two columns, name wraps */
+  table.missing { min-width: 0; }
+  table.missing th, table.missing td { text-align: left; white-space: normal; }
+  table.missing td:first-child { border-right: 0; white-space: nowrap; }
+
+  /* Member panel */
+  dialog { background: #111; color: var(--white); border: 1px solid var(--line); border-radius: 8px;
+           padding: 0; width: min(560px, calc(100vw - 32px)); max-height: 80vh; }
+  dialog::backdrop { background: rgba(0,0,0,.75); }
+  dialog .hd { display: flex; justify-content: space-between; align-items: center;
+               background: var(--red); padding: 10px 14px; font-weight: 700; }
+  dialog .hd button { background: none; border: 0; color: var(--white); font-size: 1.4rem; cursor: pointer; line-height: 1; }
+  dialog .bd { padding: 6px 14px 14px; overflow: auto; max-height: calc(80vh - 52px); }
+  dialog table { min-width: 0; }
+  dialog th, dialog td { text-align: left; white-space: normal; }
+  dialog td:first-child { border-right: 0; white-space: nowrap; }
+  /* Mission report comments: one block per comment, text keeps its line breaks */
+  #dlg-mr { width: min(720px, calc(100vw - 32px)); }
+  .cm { padding: 10px 0; border-top: 1px solid var(--line); }
+  .cm:first-child { border-top: 0; }
+  .cm .meta { color: var(--gold); font-weight: 700; font-size: .9rem; margin-bottom: 4px; }
+  .cm .txt { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+
+  .gate { max-width: 420px; margin: 24px 0; }
+  .gate label { display: block; margin-bottom: 8px; }
+  .gate .row { display: flex; gap: 8px; }
+  .gate input { flex: 1; background: #111; color: var(--white); border: 1px solid var(--line);
+                border-radius: 4px; padding: 10px; font: inherit; }
+  .gate button { background: var(--red); color: var(--white); border: 0; border-radius: 4px;
+                 padding: 10px 18px; font: inherit; font-weight: 700; cursor: pointer; }
+  .gate button:hover, .gate button:focus-visible { outline: 2px solid var(--gold); }
+  .gate button:disabled { opacity: .6; cursor: wait; }
+  #gate-msg { color: var(--gold); min-height: 1.4em; margin: 8px 0 0; }
+  [hidden] { display: none !important; }
+  #pending td:last-child { white-space: nowrap; }
+  footer { color: var(--muted); font-size: .8rem; padding: 8px 0 24px; }
+
+  @media (max-width: 760px) {
+    .cards { grid-template-columns: repeat(2, 1fr); }
+    header img { width: 72px; height: 72px; }
+    header h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo.png" alt="Golden Gate Garrison 501st Legion patch">
+    <div>
+      <h1>GGG TOD</h1>
+      <div class="asof" id="asof"></div>
+    </div>
+  </header>
+
+  <form id="gate" class="gate" autocomplete="off">
+    <label for="pw">Enter the member password to view the report.</label>
+    <div class="row">
+      <input id="pw" type="password" autocomplete="current-password" required>
+      <button type="submit" id="unlock">Unlock</button>
+    </div>
+    <p id="gate-msg" role="alert"></p>
+  </form>
+
+  <div id="app" hidden>
+  <!-- Nav: later, the Mission Reports link becomes a separate page (e.g. mission-reports.html) -->
+  <nav aria-label="Sections">
+    <a href="#overview">Overview</a>
+    <a href="#tod-counts">TOD Counts</a>
+    <a href="#mission-reports">Missing Mission Reports</a>
+    <a href="#pending-bookings">Pending Bookings</a>
+  </nav>
+
+  <section id="overview" aria-labelledby="h-main">
+    <div class="bar" id="h-main">Overview</div>
+    <div class="cards" id="cards" style="margin-top:12px"></div>
+  </section>
+
+  <section id="tod-counts" aria-labelledby="h-counts">
+    <div class="bar" id="h-counts">TOD Counts<span class="sub">Ticket / Count / Most Recent</span></div>
+    <div class="tools"><input id="q" type="search" placeholder="Search names" aria-label="Search names"></div>
+    <div class="scroll">
+      <table id="pivot">
+        <thead>
+          <tr class="grp"><th class="l"></th><th colspan="2" class="span">Costume</th><th colspan="2" class="span">Non-Costume</th></tr>
+          <tr class="cols">
+            <th data-k="name">Name</th><th data-k="cc">Count</th><th data-k="cd">Most Recent</th>
+            <th data-k="nc">Count</th><th data-k="nd">Most Recent</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="mission-reports" aria-labelledby="h-miss">
+    <div class="bar" id="h-miss">Missing Mission Reports</div>
+    <div class="scroll"><table class="missing" id="missing">
+      <thead><tr><th>Event Date</th><th>Event</th></tr></thead><tbody></tbody>
+    </table></div>
+  </section>
+
+  
+    <section id="pending-bookings" aria-labelledby="h-pend">
+      <div class="bar" id="h-pend">Pending Bookings</div>
+      <div class="scroll"><table class="missing" id="pending">
+        <thead><tr><th>Event Date</th><th>Event</th><th>Name</th></tr></thead><tbody></tbody>
+      </table></div>
+    </section>
+  </div>
+
+  <footer id="foot" hidden>Attendance counts include only EC-verified, approved bookings for events through the date above.</footer>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div class="hd"><span id="dlg-title"></span><button type="button" id="dlg-x" aria-label="Close">&times;</button></div>
+  <div class="bd"><table><thead><tr><th>Event Date</th><th>Event</th></tr></thead><tbody id="dlg-body"></tbody></table></div>
+</dialog>
+
+<dialog id="dlg-mr" aria-labelledby="dlg-mr-title">
+  <div class="hd"><span id="dlg-mr-title"></span><button type="button" id="dlg-mr-x" aria-label="Close">&times;</button></div>
+  <div class="bd" id="dlg-mr-body"></div>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function fmt(iso) {
+    if (!iso) return "-";
+    var p = iso.split("-");
+    return MONTHS[+p[1] - 1] + " " + (+p[2]) + ", " + p[0];
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function b64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
+
+  /* ---- Decrypt: PBKDF2-SHA256 -> AES-256-GCM (matches export_site.py) ---- */
+  async function decrypt(env, password) {
+    var enc = new TextEncoder();
+    var base = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+    var key = await crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt: b64(env.salt), iterations: env.iter, hash: "SHA-256" },
+      base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+    var plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(env.iv) }, key, b64(env.ct));
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  /* ---- Render ---- */
+  function render(data) {
+    var sc = data.scorecards;
+    var cards = [
+      [sc.events_attended, "Unique events attended"],
+      [sc.costume_members, "Unique costume members"],
+      [Number(sc.avg_attendance).toFixed(1), "Average attendance per event"],
+      [Number(sc.avg_costume).toFixed(1), "Avg costume members per event"],
+      [sc.handler_trainings, "Handler trainings"]
+    ];
+    document.getElementById("cards").innerHTML = cards.map(function (c) {
+      return '<div class="card"><div class="num">' + c[0] + '</div><div class="lbl">' + c[1] + "</div></div>";
+    }).join("");
+    document.getElementById("asof").textContent = "Events through " + fmt(data.asof);
+
+    var rows = data.members.map(function (m, i) {
+      return { name: m.name, i: i, cc: m.c[0], cd: m.c[1] || "", nc: m.n[0], nd: m.n[1] || "" };
+    });
+    var sortKey = "name", sortDir = 1;
+    var tbody = document.querySelector("#pivot tbody");
+    var heads = document.querySelectorAll("#pivot thead tr.cols th");
+
+    function renderPivot() {
+      var q = document.getElementById("q").value.trim().toLowerCase();
+      var list = rows.filter(function (r) { return !q || r.name.toLowerCase().indexOf(q) > -1; });
+      list.sort(function (a, b) {
+        var x = a[sortKey], y = b[sortKey];
+        if (typeof x === "string") { x = x.toLowerCase(); y = y.toLowerCase(); }
+        if (x === y) return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1;
+        return (x < y ? -1 : 1) * sortDir;
+      });
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No matching members.</td></tr>'; return; }
+      function num(v) { return v ? v : "-"; }
+      tbody.innerHTML = list.map(function (r) {
+        return '<tr><td><button class="name" data-i="' + r.i + '">' + esc(r.name) + "</button></td>" +
+          "<td" + (r.cc ? "" : ' class="dash"') + ">" + num(r.cc) + "</td><td" + (r.cd ? "" : ' class="dash"') + ">" + fmt(r.cd) + "</td>" +
+          "<td" + (r.nc ? "" : ' class="dash"') + ">" + num(r.nc) + "</td><td" + (r.nd ? "" : ' class="dash"') + ">" + fmt(r.nd) + "</td></tr>";
+      }).join("");
+    }
+    heads.forEach(function (th) {
+      th.setAttribute("aria-sort", th.dataset.k === sortKey ? "ascending" : "none");
+      th.addEventListener("click", function () {
+        var k = th.dataset.k;
+        sortDir = (sortKey === k) ? -sortDir : (k === "name" ? 1 : -1);
+        sortKey = k;
+        heads.forEach(function (o) { o.setAttribute("aria-sort", "none"); });
+        th.setAttribute("aria-sort", sortDir === 1 ? "ascending" : "descending");
+        renderPivot();
+      });
+    });
+    document.getElementById("q").addEventListener("input", renderPivot);
+    renderPivot();
+
+    var dlg = document.getElementById("dlg");
+    tbody.addEventListener("click", function (ev) {
+      var b = ev.target.closest("button.name"); if (!b) return;
+      var m = data.members[+b.dataset.i];
+      document.getElementById("dlg-title").textContent = m.name + " — " + m.events.length + (m.events.length === 1 ? " event" : " events");
+      document.getElementById("dlg-body").innerHTML = m.events.map(function (e) {
+        return "<tr><td>" + fmt(e[0]) + "</td><td>" + esc(e[1]) + "</td></tr>";
+      }).join("");
+      dlg.showModal();
+    });
+    document.getElementById("dlg-x").addEventListener("click", function () { dlg.close(); });
+    dlg.addEventListener("click", function (ev) { if (ev.target === dlg) dlg.close(); });
+
+    var missBody = document.querySelector("#missing tbody");
+    missBody.innerHTML = data.missing.length
+      ? data.missing.map(function (e, i) {
+          var name = e[2].length ? '<button class="name" data-i="' + i + '">' + esc(e[1]) + "</button>" : esc(e[1]);
+          return "<tr><td>" + fmt(e[0]) + "</td><td>" + name + "</td></tr>";
+        }).join("")
+      : '<tr><td colspan="2" class="empty">All mission reports are in.</td></tr>';
+
+    var dlgMr = document.getElementById("dlg-mr");
+    missBody.addEventListener("click", function (ev) {
+      var b = ev.target.closest("button.name"); if (!b) return;
+      var e = data.missing[+b.dataset.i];
+      document.getElementById("dlg-mr-title").textContent = e[1] + " — " + e[2].length + (e[2].length === 1 ? " comment" : " comments");
+      document.getElementById("dlg-mr-body").innerHTML = e[2].map(function (c) {
+        return '<div class="cm"><div class="meta">' + fmt(c[0]) + " — " + esc(c[1]) + '</div><div class="txt">' + esc(c[2]) + "</div></div>";
+      }).join("");
+      dlgMr.showModal();
+    });
+    document.getElementById("dlg-mr-x").addEventListener("click", function () { dlgMr.close(); });
+    dlgMr.addEventListener("click", function (ev) { if (ev.target === dlgMr) dlgMr.close(); });
+
+    var pend = data.pending || [];
+    document.querySelector("#pending tbody").innerHTML = pend.length
+      ? pend.map(function (e) { return "<tr><td>" + fmt(e[0]) + "</td><td>" + esc(e[1]) + "</td><td>" + esc(e[2]) + "</td></tr>"; }).join("")
+      : '<tr><td colspan="3" class="empty">No pending bookings.</td></tr>';
+  }
+
+  /* ---- Gate ---- */
+  var envelope = null;
+  document.getElementById("gate").addEventListener("submit", async function (ev) {
+    ev.preventDefault();
+    var msg = document.getElementById("gate-msg"), btn = document.getElementById("unlock");
+    var pw = document.getElementById("pw");
+    msg.textContent = ""; btn.disabled = true;
+    try {
+      if (!window.crypto || !crypto.subtle) throw new Error("secure");
+      if (!envelope) {
+        var res = await fetch("data.enc.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("fetch");
+        envelope = await res.json();
+      }
+      var data;
+      try { data = await decrypt(envelope, pw.value); }
+      catch (e) { msg.textContent = "That password didn't work."; return; }
+      pw.value = "";
+      render(data);
+      document.getElementById("gate").hidden = true;
+      document.getElementById("app").hidden = false;
+      document.getElementById("foot").hidden = false;
+    } catch (e) {
+      msg.textContent = e.message === "secure"
+        ? "This page must be opened over https."
+        : "Couldn't load the report data. Try again later.";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
